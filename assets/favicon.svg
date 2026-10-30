@@ -1,0 +1,7 @@
+<!-- language: SVG, file: assets/favicon.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="12" fill="#0d1117"/>
+  <path d="M10 22 L20 44 L32 28 L44 44 L54 22"
+        fill="none" stroke="#2ea043" stroke-width="6"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
