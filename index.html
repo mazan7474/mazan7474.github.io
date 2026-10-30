@@ -1,209 +1,53 @@
-<!-- language: HTML, file: index.html, target: GitHub Pages / mobile browsers -->
+<!-- language: HTML, file: index.html, target: GitHub Pages -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0d1117">
+<meta name="description" content="World Hub — каталог активных миров Terraria Mobile">
 <title>World Hub — Миры Terraria Mobile</title>
-<style>
-  :root{
-    --bg:#0d1117; --panel:#161b22; --border:#30363d;
-    --text:#e6edf3; --muted:#8b949e; --accent:#2ea043;
-    --accent-hover:#3fb950; --danger:#f85149;
-  }
-  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    font-size:16px;line-height:1.5;}
-  header{padding:20px 16px 12px;text-align:center;border-bottom:1px solid var(--border);}
-  header h1{margin:0;font-size:22px;letter-spacing:.3px;}
-  header p{margin:6px 0 0;color:var(--muted);font-size:13px;}
-  main{padding:16px;max-width:720px;margin:0 auto;}
-  .server{background:var(--panel);border:1px solid var(--border);
-    border-radius:12px;padding:14px;margin-bottom:12px;}
-  .server-head{display:flex;justify-content:space-between;align-items:flex-start;
-    gap:12px;margin-bottom:8px;}
-  .server-name{font-weight:600;font-size:16px;}
-  .status{display:inline-flex;align-items:center;gap:6px;font-size:12px;
-    color:var(--muted);white-space:nowrap;}
-  .dot{width:8px;height:8px;border-radius:50%;background:var(--danger);}
-  .dot.online{background:var(--accent);}
-  .meta{display:flex;flex-wrap:wrap;gap:14px;color:var(--muted);
-    font-size:13px;margin-bottom:12px;}
-  .meta b{color:var(--text);font-weight:500;}
-  .addr{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
-    font-size:13px;color:var(--accent);word-break:break-all;margin-bottom:12px;}
-  .btn{display:flex;align-items:center;justify-content:center;gap:8px;
-    width:100%;min-height:44px;border:0;border-radius:10px;
-    background:var(--accent);color:#fff;font-size:15px;font-weight:600;
-    cursor:pointer;user-select:none;transition:background .15s;}
-  .btn:active{background:var(--accent-hover);}
-  .btn.copied{background:#238636;}
-  .btn svg{width:18px;height:18px;fill:currentColor;}
-  .empty{text-align:center;color:var(--muted);padding:40px 16px;font-size:14px;}
-  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);
-    background:#238636;color:#fff;padding:10px 18px;border-radius:20px;
-    font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;
-    z-index:100;}
-  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-  footer{text-align:center;color:var(--muted);font-size:12px;padding:24px 16px;}
-</style>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
+<div id="offline">Нет соединения · показываем кэш</div>
+
 <header>
   <h1>World Hub</h1>
   <p>Активные миры Terraria Mobile</p>
 </header>
 
-<main id="list"></main>
+<main>
+  <div class="controls">
+    <div class="search" id="searchWrap">
+      <input id="search" type="search" placeholder="Поиск по имени, IP, режиму..."
+             autocomplete="off" autocorrect="off" spellcheck="false">
+      <button class="clear" id="searchClear" aria-label="Очистить">×</button>
+    </div>
+
+    <div class="chips-row" id="modeChips"></div>
+    <div class="chips-row" id="mapChips"></div>
+
+    <div class="sort-row" id="sortRow">
+      <button class="seg" data-sort="online">Онлайн</button>
+      <button class="seg" data-sort="players">Игроки</button>
+      <button class="seg" data-sort="name">Имя</button>
+    </div>
+  </div>
+
+  <div id="list"></div>
+</main>
 
 <footer>World Hub · не связан с Re-Logic</footer>
-
 <div class="toast" id="toast">Скопировано</div>
 
-<script>
-/* ============================================================
- * ИСТОЧНИК ДАННЫХ
- * Сейчас — заглушка. Позже заменится на:
- *   const SERVERS = await fetch('/api/servers').then(r => r.json());
- * Формат записи должен остаться тем же.
- * ============================================================ */
-const SERVERS = [
-  {
-    id: "example-1",
-    name: "Демо-мир (заглушка)",
-    host: "127.0.0.1",
-    port: 7777,
-    online: true,
-    players: 3,
-    maxPlayers: 8,
-    mode: "Expert",
-    map: "Small / Crimson"
-  },
-  {
-    id: "example-2",
-    name: "Второй демо-мир",
-    host: "10.0.0.42",
-    port: 7777,
-    online: false,
-    players: 0,
-    maxPlayers: 16,
-    mode: "Classic",
-    map: "Medium / Corruption"
-  }
-];
-
-/* ============================================================
- * КОПИРОВАНИЕ В БУФЕР
- * Двухступенчатый путь: современный API → execCommand fallback.
- * На мобильных это критично: navigator.clipboard требует HTTPS
- * (GitHub Pages даёт) и пользовательский жест (кнопка даёт).
- * ============================================================ */
-async function copyText(text) {
-  // Ступень 1 — современный API.
-  if (navigator.clipboard && window.isSecureContext) {
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch (_) { /* падаем на ступень 2 */ }
-  }
-  // Ступень 2 — execCommand fallback для старых WebView.
-  try {
-    const ta = document.createElement("textarea");
-    ta.value = text;
-    ta.setAttribute("readonly", "");
-    ta.style.position = "fixed";
-    ta.style.top = "-9999px";
-    ta.style.opacity = "0";
-    document.body.appendChild(ta);
-    ta.select();
-    ta.setSelectionRange(0, text.length); // iOS требует явного range
-    const ok = document.execCommand("copy");
-    document.body.removeChild(ta);
-    return ok;
-  } catch (_) {
-    return false;
-  }
-}
-
-/* ============================================================
- * TOAST
- * ============================================================ */
-let toastTimer = null;
-function showToast(msg) {
-  const el = document.getElementById("toast");
-  el.textContent = msg;
-  el.classList.add("show");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove("show"), 1600);
-}
-
-/* ============================================================
- * РЕНДЕР
- * ============================================================ */
-function renderServers(list) {
-  const root = document.getElementById("list");
-  if (!list.length) {
-    root.innerHTML = '<div class="empty">Пока нет активных миров.<br>Загляни позже.</div>';
-    return;
-  }
-  root.innerHTML = list.map(s => `
-    <article class="server">
-      <div class="server-head">
-        <span class="server-name">${escapeHtml(s.name)}</span>
-        <span class="status">
-          <span class="dot ${s.online ? "online" : ""}"></span>
-          ${s.online ? "онлайн" : "оффлайн"}
-        </span>
-      </div>
-      <div class="meta">
-        <span>Игроки: <b>${s.online ? s.players : 0}/${s.maxPlayers}</b></span>
-        <span>Режим: <b>${escapeHtml(s.mode)}</b></span>
-        <span>Карта: <b>${escapeHtml(s.map)}</b></span>
-      </div>
-      <div class="addr">${escapeHtml(s.host)}:${s.port}</div>
-      <button class="btn" data-host="${escapeHtml(s.host)}" data-port="${s.port}">
-        <svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
-        Присоединиться
-      </button>
-    </article>
-  `).join("");
-
-  // Делегирование: один слушатель на контейнер, а не на каждую кнопку.
-  root.querySelectorAll(".btn").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const addr = `${btn.dataset.host}:${btn.dataset.port}`;
-      const ok = await copyText(addr);
-      if (ok) {
-        btn.classList.add("copied");
-        const orig = btn.innerHTML;
-        btn.textContent = "Скопировано ✓";
-        showToast(`Скопировано: ${addr}`);
-        setTimeout(() => {
-          btn.classList.remove("copied");
-          btn.innerHTML = orig;
-        }, 1800);
-      } else {
-        showToast("Не удалось скопировать. Скопируй вручную: " + addr);
-      }
-    });
-  });
-}
-
-/* ============================================================
- * УТИЛИТЫ
- * ============================================================ */
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
-
-/* ============================================================
- * СТАРТ
- * ============================================================ */
-renderServers(SERVERS);
-</script>
+<!-- порядок подключения важен -->
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/cache.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
