@@ -1,19 +1,14 @@
 // language: JavaScript, file: js/ui.js
-// Только рендер. Никаких fetch, никакого localStorage. Принимает данные,
-// отдаёт HTML. События вешает app.js, здесь — только helpers отрисовки.
-
 const UI = {
   escapeHtml(str) {
     return String(str)
       .replace(/&/g,"&amp;").replace(/</g,"&lt;")
       .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
   },
-
   debounce(fn, ms) {
     let t = null;
     return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
   },
-
   showToast(msg, isErr = false) {
     const el = document.getElementById("toast");
     el.textContent = msg;
@@ -22,7 +17,6 @@ const UI = {
     clearTimeout(UI._toastTimer);
     UI._toastTimer = setTimeout(() => el.classList.remove("show"), 1800);
   },
-
   async copyText(text) {
     if (navigator.clipboard && window.isSecureContext) {
       try { await navigator.clipboard.writeText(text); return true; } catch {}
@@ -38,7 +32,6 @@ const UI = {
       return ok;
     } catch { return false; }
   },
-
   renderChipRow(elId, options, selectedSet, kind) {
     const el = document.getElementById(elId);
     if (!options.length) { el.innerHTML = ""; return; }
@@ -49,7 +42,6 @@ const UI = {
       </button>
     `).join("");
   },
-
   renderSkeleton() {
     return Array.from({ length: 3 }).map(() => `
       <div class="skeleton">
@@ -60,7 +52,6 @@ const UI = {
       </div>
     `).join("");
   },
-
   renderServerCard(s) {
     return `
       <article class="server ${s.online ? "" : "offline"}">

@@ -1,7 +1,4 @@
 // language: JavaScript, file: js/cache.js
-// Только localStorage. Все операции обёрнуты в try/catch — приватный
-// режим Safari, квота, отключённое хранилище не должны ронять сайт.
-
 const Cache = {
   loadServers() {
     try {
@@ -14,14 +11,12 @@ const Cache = {
       return { list, ts };
     } catch { return null; }
   },
-
   saveServers(list) {
     try {
       localStorage.setItem(CONFIG.LS_SERVERS, JSON.stringify(list));
       localStorage.setItem(CONFIG.LS_SERVERS_TS, String(Date.now()));
     } catch {}
   },
-
   loadFilters() {
     try {
       const raw = localStorage.getItem(CONFIG.LS_FILTERS);
@@ -35,12 +30,9 @@ const Cache = {
       };
     } catch { return null; }
   },
-
   saveFilters({ query, modes, maps, sort }) {
     try {
-      localStorage.setItem(CONFIG.LS_FILTERS, JSON.stringify({
-        query, modes, maps, sort
-      }));
+      localStorage.setItem(CONFIG.LS_FILTERS, JSON.stringify({ query, modes, maps, sort }));
     } catch {}
   }
 };
