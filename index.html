@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terraria Mobile Hub</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #4CAF50;
+            margin-top: 20px;
+        }
+        .subtitle {
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 350px;
+            margin: 0 auto 20px auto;
+            text-align: left;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .card h3 {
+            margin-top: 0;
+            color: #ffca28;
+        }
+        .info {
+            margin: 8px 0;
+            font-size: 14px;
+            color: #ddd;
+        }
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            box-sizing: border-box;
+        }
+        .btn:active {
+            background-color: #388E3C;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🌍 Terraria Hub</h1>
+    <p class="subtitle">Поиск комнат для мобильной Terraria</p>
+
+    <div class="card">
+        <h3>🔥 Тестовый Сервер</h3>
+        <p class="info"><b>Режим:</b> Эксперт</p>
+        <p class="info"><b>Игроки:</b> 3 / 8</p>
+        <p class="info"><b>IP:</b> 127.0.0.1:7777</p>
+        
+        <button class="btn" onclick="copyAndConnect('127.0.0.1', '7777')">
+            Присоединиться
+        </button>
+    </div>
+
+    <script>
+        function copyAndConnect(ip, port) {
+            const textToCopy = ip + ":" + port;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                alert("✅ IP и порт (" + textToCopy + ") скопированы в буфер обмена!\n\nЗапустите Terraria -> Мультиплеер -> Подключиться по IP -> Нажмите 'Вставить'.");
+            }).catch(err => {
+                alert("Ошибка копирования: " + err);
+            });
+        }
+    </script>
+
+</body>
+</html>
